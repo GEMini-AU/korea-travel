@@ -223,7 +223,7 @@ document.addEventListener('keydown',function(e){
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
 document.getElementById('mImage').addEventListener('input',function(){var p=document.getElementById('mPreview');if(this.value.trim()){p.src=this.value.trim();p.style.display='block'}else{p.style.display='none'}});
 document.getElementById('map-wrap').addEventListener('dblclick',function(e){if(e.target===this&&window.innerWidth>768){document.getElementById('side').classList.toggle('hidden');map.invalidateSize()}});
-var _sx=0;document.addEventListener('touchstart',function(e){_sx=e.touches[0].clientX},{passive:true});document.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-_sx;if(Math.abs(dx)>60&&window.innerWidth<=768){if(dx>0)openSide();else closeSide()}});
+var _sx=0,_single=false;document.addEventListener('touchstart',function(e){if(e.touches.length===1){_sx=e.touches[0].clientX;_single=true;}else{_single=false;}},{passive:true});document.addEventListener('touchend',function(e){if(!_single)return;var dx=e.changedTouches[0].clientX-_sx;if(Math.abs(dx)>60&&window.innerWidth<=768){if(dx>0)openSide();else closeSide()}_single=false;});
 </script>
 </body>
 </html>

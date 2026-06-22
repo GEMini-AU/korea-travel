@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>韩国旅游地图</title>
+<link rel="stylesheet" href="leaflet.css" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#3b7dd8;--r:#e74c3c;--bg:#f0f2f5;--w:#fff;--t:#2c3e50;--m:#7f8c8d;--b:#e0e0e0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);height:100vh;height:100dvh;display:flex;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#side{width:380px;min-width:380px;height:100vh;height:100dvh;background:var(--w);box-shadow:0 0 20px rgba(0,0,0,.06);z-index:1000;display:flex;flex-direction:column;transition:width .3s,min-width .3s;overflow:hidden}
+#side.hidden{width:0;min-width:0}
+.side-hd{padding:14px 16px;background:linear-gradient(135deg,#1a3a5c,#2a5588);color:#fff;display:flex;align-items:center;gap:10px}
+.side-hd h1{font-size:18px;flex:1;white-space:nowrap}
+.side-hd .btn-x{display:none;width:30px;height:30px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:50%;cursor:pointer;font-size:16px;align-items:center;justify-content:center;flex-shrink:0}
+.bar{padding:8px 10px;border-bottom:1px solid var(--b);display:flex;gap:4px;flex-wrap:wrap}
+.bar button{padding:6px 10px;border:1px solid var(--b);background:#fff;border-radius:14px;cursor:pointer;font-size:11px;color:var(--t);white-space:nowrap}
+.bar button:active{transform:scale(.95)}
+.bar button.on{background:var(--p);color:#fff;border-color:var(--p)}
+.search{margin:6px 10px;padding:7px 10px;display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--b);border-radius:18px}
+.search input{flex:1;border:none;background:transparent;outline:none;font-size:13px;color:var(--t)}
+.search input::placeholder{color:#bbb}
+.regions{padding:4px 10px;border-bottom:1px solid var(--b);display:flex;gap:3px;flex-wrap:wrap;max-height:80px;overflow-y:auto}
+.regions .tag{padding:3px 9px;border:1px solid var(--b);border-radius:10px;cursor:pointer;font-size:10px;color:var(--m);background:#fff}
+.regions .tag:active{transform:scale(.95)}
+.regions .tag.on{background:var(--p);color:#fff;border-color:var(--p)}
+.lst-hd{display:flex;justify-content:space-between;align-items:center;padding:8px 10px 2px}
+.lst-hd h3{font-size:12px}
+.badge{background:var(--p);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px}
+.spot-list{flex:1;overflow-y:auto;padding:4px 6px;-webkit-overflow-scrolling:touch}
+.none{text-align:center;padding:40px 12px;color:var(--m)}
+.none i{font-size:32px;opacity:.15;display:block;margin-bottom:6px;font-style:normal}
+.none p{font-size:12px;line-height:1.8}
+.card{background:#fff;border:1px solid var(--b);border-radius:8px;padding:8px 10px;margin-bottom:5px;cursor:pointer}
+.card:active{transform:scale(.98)}
+.card.hi{border-color:var(--p);box-shadow:0 0 0 2px rgba(59,125,216,.2)}
+.card .ch{display:flex;justify-content:space-between;align-items:flex-start;gap:4px}
+.card .nm{font-size:13px;font-weight:700;flex:1}
+.card .rg{font-size:9px;padding:1px 6px;border-radius:6px;background:#e7f0fd;color:var(--p);white-space:nowrap}
+.card .coord{font-size:10px;color:var(--m);margin-top:1px;font-family:monospace}
+.card .note{font-size:10px;color:#555;margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card img{width:100%;height:70px;object-fit:cover;border-radius:4px;margin-top:4px}
+.card .tags{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
+.card .tags span{font-size:9px;padding:1px 5px;border-radius:6px;background:#eee;color:#888}
+.card .acts{display:flex;gap:3px;margin-top:5px}
+.card .acts button{flex:1;padding:5px 3px;border:1px solid var(--b);background:#fff;border-radius:4px;cursor:pointer;font-size:10px}
+.card .acts button:active{transform:scale(.95)}
+#map-wrap{flex:1;position:relative;min-width:0}
+#map{width:100%;height:100%;background:#e8ded2}
+.btn-menu{position:absolute;top:10px;left:10px;z-index:999;width:36px;height:36px;border:none;background:#fff;border-radius:8px;cursor:pointer;font-size:18px;color:var(--t);box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center}
+.btn-menu:active{transform:scale(.9)}
+.map-ctrl{position:absolute;top:10px;right:10px;z-index:999;display:flex;flex-direction:column;gap:4px}
+.map-ctrl button{width:36px;height:36px;border:none;background:#fff;border-radius:8px;cursor:pointer;font-size:16px;color:var(--t);box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center}
+.map-ctrl button:active{transform:scale(.9)}
+.map-ctrl button.on{background:var(--p);color:#fff}
+.map-tip{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:6px 16px;border-radius:16px;font-size:11px;z-index:999;pointer-events:none;transition:opacity .2s}
+#overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:999}
+#overlay.show{display:block}
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,.15)}
+.modal-hd{padding:14px 16px;border-bottom:1px solid var(--b);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1;border-radius:16px 16px 0 0}
+.modal-hd h2{font-size:16px}
+.modal-hd .cls{width:28px;height:28px;border:none;background:var(--bg);border-radius:50%;cursor:pointer;font-size:14px;color:var(--m)}
+.modal-body{padding:14px}
+.fg{margin-bottom:10px}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--t);margin-bottom:3px}
+.fg input,.fg textarea,.fg select{width:100%;padding:9px 10px;border:1px solid var(--b);border-radius:6px;font-size:14px;font-family:inherit;outline:none;-webkit-appearance:none}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--p);box-shadow:0 0 0 2px rgba(59,125,216,.1)}
+.fg textarea{resize:vertical;min-height:60px}
+.fg .coords{padding:8px 10px;background:var(--bg);border-radius:6px;font-size:12px;font-family:monospace;word-break:break-all}
+.fg .preview{width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:5px;border:1px solid var(--b)}
+.fg input[type=file]{font-size:13px;padding:6px 0;border:none}
+.modal-ft{padding:10px 16px 14px;border-top:1px solid var(--b);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
+.btn{padding:9px 16px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+.btn-p{background:var(--p);color:#fff}
+.btn-r{background:var(--r);color:#fff}
+.btn-g{background:var(--bg);color:var(--t);border:1px solid var(--b)}
+@media(max-width:768px){#side{position:fixed;top:0;left:0;bottom:0;width:85vw;min-width:85vw;max-width:360px;z-index:1001;transform:translateX(-100%);border-radius:0 12px 12px 0;transition:transform .3s}#side.open{transform:translateX(0)}.side-hd .btn-x{display:flex}.btn-menu{display:flex}.map-ctrl{top:56px}.map-ctrl button{width:40px;height:40px;font-size:18px}.card .acts button{padding:6px 4px;font-size:11px}}
+@media(min-width:769px){.btn-menu{display:none}.side-hd .btn-x{display:none}#overlay{display:none!important}}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#ccc;border-radius:1px}
+</style>
+</head>
+<body>
+<div id="overlay" onclick="closeSide()"></div>
+<div id="side">
+<div class="side-hd"><h1>🇰🇷 韩国旅游地图</h1><button class="btn-x" onclick="closeSide()">✕</button></div>
+<div class="bar">
+<button onclick="toggleAdd()" id="btnAdd">＋ 添加</button>
+<button onclick="document.getElementById('f1').click()">⬆ 导入</button>
+<button onclick="exportData()">⬇ 导出</button>
+<button onclick="clearAll()" style="color:var(--r)">✕ 清空</button>
+</div>
+<input type="file" id="f1" accept=".json" hidden onchange="importData(event)">
+<div class="regions" id="regions"><span class="tag on" data-r="all" onclick="setReg('all',this)">全部</span></div>
+<div class="search"><span>🔍</span><input type="text" id="search" placeholder="搜索景点..." oninput="render()"></div>
+<div class="lst-hd"><h3>景点列表</h3><span class="badge" id="count">0</span></div>
+<div class="spot-list" id="list"><div class="none" id="empty"><i>📍</i><p>长按/右键地图添加景点</p></div></div>
+</div>
+<div id="map-wrap">
+<div id="map"></div>
+<button class="btn-menu" id="btnMenu" onclick="openSide()">☰</button>
+<div class="map-ctrl">
+<button id="btnAdd2" onclick="toggleAdd()">＋</button>
+<button onclick="map.setView([36.35,127.75],7,{animate:true})">⌂</button>
+</div>
+<div class="map-tip" id="tip" style="opacity:0">点击地图添加景点</div>
+</div>
+<div class="modal-bg" id="modal" style="display:none">
+<div class="modal">
+<div class="modal-hd"><h2 id="mTitle">添加景点</h2><button class="cls" onclick="closeModal()">✕</button></div>
+<div class="modal-body">
+<div class="fg"><label>📛 景点名称 *</label><input type="text" id="mName" placeholder="例如：景福宫、N首尔塔..."></div>
+<div class="fg"><label>🗺️ 地区</label><select id="mRegion"><option value="首尔">首尔</option><option value="釜山">釜山</option><option value="济州">济州</option><option value="庆州">庆州</option><option value="仁川">仁川</option><option value="春川/江原道">春川/江原道</option><option value="大邱">大邱</option><option value="光州">光州</option><option value="大田">大田</option><option value="水原">水原</option><option value="全州">全州</option><option value="束草">束草</option><option value="其他">其他</option></select></div>
+<div class="fg"><label>📍 坐标</label><div class="coords" id="mCoords">--</div></div>
+<div class="fg"><label>🖼️ 图片</label><input type="text" id="mImage" placeholder="图片URL"><input type="file" id="mFile" accept="image/*" onchange="handleImg(event)"><img class="preview" id="mPreview" style="display:none"></div>
+<div class="fg"><label>📝 备注</label><textarea id="mNotes" placeholder="开放时间、门票、交通..."></textarea></div>
+<div class="fg"><label># 标签</label><input type="text" id="mTags" placeholder="如：必去,美食,拍照"></div>
+</div>
+<div class="modal-ft">
+<button class="btn btn-r" id="mDelete" style="display:none;margin-right:auto" onclick="deleteSpot()">删除</button>
+<button class="btn btn-g" onclick="closeModal()">取消</button>
+<button class="btn btn-p" onclick="saveSpot()">保存</button>
+</div>
+</div>
+</div>
+
+<script src="leaflet.js"></script>
+<script>
+// 如果本地 leaflet 没加载，用 CDN
+if(typeof L==='undefined'){document.write('<script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.js"><\/script>')}
+</script>
+<script>
+// ★ 所有变量和函数都在全局作用域，HTML onclick 可以直接调用
+
+var K=[36.35,127.75],map,addMode=false,spots=[],editId=null,curR='all',markers={};
+
+document.addEventListener('DOMContentLoaded',function(){
+  map=L.map('map',{center:K,zoom:7,zoomControl:false});
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  var g=L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=zh-CN&x={x}&y={y}&z={z}',{subdomains:'0123'.split(''),maxZoom:20});
+  var o=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+  g.addTo(map);
+  g.on('tileerror',function(){if(map.hasLayer(g)){map.removeLayer(g);map.addLayer(o)}});
+  map.on('click',function(e){if(addMode){addSpot(e.latlng.lat,e.latlng.lng);toggleAdd(false)}});
+  map.on('contextmenu',function(e){addSpot(e.latlng.lat,e.latlng.lng)});
+  ld();render();
+});
+
+function openSide(){document.getElementById('side').classList.add('open');document.getElementById('overlay').classList.add('show')}
+function closeSide(){document.getElementById('side').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+function toggleAdd(f){addMode=f!==undefined?f:!addMode;document.querySelectorAll('#btnAdd,#btnAdd2').forEach(function(b){b.classList.toggle('on',addMode)});document.getElementById('tip').style.opacity=addMode?'1':'0';map.getContainer().style.cursor=addMode?'crosshair':''}
+
+function mk(s,i){
+  var icon=L.divIcon({className:'',html:'<div style="position:relative"><div style="width:24px;height:24px;background:#3b7dd8;border:2.5px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,0.25)"></div><div style="position:absolute;top:-5px;left:-5px;width:16px;height:16px;background:#e74c3c;color:#fff;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">'+(i+1)+'</div></div>',iconSize:[26,26],iconAnchor:[9,22],popupAnchor:[0,-16]});
+  var im=s.image?'<img src="'+x(s.image)+'" onerror="this.style.display=\'none\'" style="width:100%;max-height:100px;object-fit:cover;border-radius:4px;margin:4px 0">':'';
+  var nt=s.notes?'<div style="font-size:10px;color:#555;margin:3px 0;line-height:1.3">'+x(s.notes).substring(0,80)+(s.notes.length>80?'...':'')+'</div>':'';
+  var m=L.marker([s.lat,s.lng],{icon:icon}).addTo(map).bindPopup('<div style="font-family:inherit;min-width:180px"><h4 style="font-size:14px;margin-bottom:2px">'+x(s.name)+'</h4><div style="font-size:10px;color:#3b7dd8">📍 '+x(s.region||'其他')+'</div>'+im+nt+'<div style="display:flex;gap:3px;margin-top:5px"><button onclick="editSpot(\''+s.id+'\')" style="flex:1;padding:3px;background:#3b7dd8;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:10px">✏️</button><button onclick="deleteSpot(\''+s.id+'\')" style="flex:1;padding:3px;background:#e74c3c;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:10px">🗑</button></div></div>',{maxWidth:260});
+  m.on('click',function(){hi(s.id)});markers[s.id]=m;
+}
+
+function refresh(){Object.values(markers).forEach(function(m){map.removeLayer(m)});markers={};flt().forEach(function(s,i){mk(s,i)})}
+function flt(){var t=document.getElementById('search').value.toLowerCase();return spots.filter(function(s){if(curR!=='all'&&(s.region||'其他')!==curR)return false;if(!t)return true;return s.name.toLowerCase().indexOf(t)>=0||(s.notes||'').toLowerCase().indexOf(t)>=0||(s.tags||'').toLowerCase().indexOf(t)>=0})}
+function render(){
+  var list=flt(),c=document.getElementById('list'),e=document.getElementById('empty');
+  document.getElementById('count').textContent=spots.length;
+  var rs=[];spots.forEach(function(s){var r=s.region||'其他';if(rs.indexOf(r)<0)rs.push(r)});
+  rs.sort(function(a,b){return a.localeCompare(b,'zh-CN')});
+  var h='<span class="tag on" data-r="all" onclick="setReg(\'all\',this)">全部</span>';
+  rs.forEach(function(r){h+='<span class="tag'+(curR===r?' on':'')+'" data-r="'+x(r)+'" onclick="setReg(\''+x(r)+'\',this)">'+x(r)+'</span>'});
+  document.getElementById('regions').innerHTML=h;
+  if(list.length===0){c.innerHTML='';c.appendChild(e);e.style.display='block'}else{e.style.display='none';
+  c.innerHTML=list.map(function(s){var im=s.image?'<img src="'+x(s.image)+'" onerror="this.style.display=\'none\'" loading="lazy">':'';var nt=s.notes?'<div class="note">'+x(s.notes)+'</div>':'';var tg=s.tags?'<div class="tags">'+s.tags.split(',').map(function(t){return'<span>'+x(t.trim())+'</span>'}).join('')+'</div>':'';return'<div class="card" id="card-'+s.id+'" onclick="clickCard(\''+s.id+'\')"><div class="ch"><span class="nm">'+x(s.name)+'</span><span class="rg">'+x(s.region||'其他')+'</span></div><div class="coord">'+s.lat.toFixed(4)+', '+s.lng.toFixed(4)+'</div>'+im+nt+tg+'<div class="acts"><button class="a-goto" onclick="event.stopPropagation();clickCard(\''+s.id+'\')">📍</button><button class="a-edit" onclick="event.stopPropagation();editSpot(\''+s.id+'\')">✏️</button><button class="a-del" onclick="event.stopPropagation();deleteSpot(\''+s.id+'\')">🗑</button></div></div>'}).join('')}
+  refresh();
+}
+
+function setReg(r,el){curR=r;document.querySelectorAll('.regions .tag').forEach(function(t){t.classList.remove('on')});el.classList.add('on');render()}
+function hi(id){document.querySelectorAll('.card').forEach(function(c){c.classList.remove('hi')});var c=document.getElementById('card-'+id);if(c){c.classList.add('hi');c.scrollIntoView({behavior:'smooth',block:'center'})}}
+function fly(id){var s=spots.find(function(x){return x.id===id});if(!s)return;map.setView([s.lat,s.lng],13,{animate:true});setTimeout(function(){var m=markers[id];if(m)m.openPopup()},500);hi(id)}
+function clickCard(id){fly(id);if(window.innerWidth<=768)setTimeout(closeSide,300)}
+
+function addSpot(lat,lng){editId=null;document.getElementById('mTitle').textContent='添加景点';document.getElementById('mName').value='';document.getElementById('mRegion').value=gss(lat,lng);document.getElementById('mCoords').textContent=lat.toFixed(6)+', '+lng.toFixed(6);document.getElementById('mImage').value='';document.getElementById('mFile').value='';document.getElementById('mNotes').value='';document.getElementById('mTags').value='';document.getElementById('mPreview').style.display='none';document.getElementById('mDelete').style.display='none';document.getElementById('modal').dataset.lat=lat;document.getElementById('modal').dataset.lng=lng;document.getElementById('modal').style.display='flex';document.getElementById('mName').focus()}
+function editSpot(id){var s=spots.find(function(x){return x.id===id});if(!s)return;editId=id;document.getElementById('mTitle').textContent='编辑景点';document.getElementById('mName').value=s.name;document.getElementById('mRegion').value=s.region||'其他';document.getElementById('mCoords').textContent=s.lat.toFixed(6)+', '+s.lng.toFixed(6);document.getElementById('mImage').value=s.image||'';document.getElementById('mFile').value='';document.getElementById('mNotes').value=s.notes||'';document.getElementById('mTags').value=s.tags||'';document.getElementById('mDelete').style.display='block';if(s.image){document.getElementById('mPreview').src=s.image;document.getElementById('mPreview').style.display='block'}else{document.getElementById('mPreview').style.display='none'}document.getElementById('modal').dataset.lat=s.lat;document.getElementById('modal').dataset.lng=s.lng;document.getElementById('modal').style.display='flex';document.getElementById('mName').focus()}
+function closeModal(){document.getElementById('modal').style.display='none';editId=null}
+function saveSpot(){var n=document.getElementById('mName').value.trim();if(!n){alert('请输入景点名称！');return}var lat=+document.getElementById('modal').dataset.lat,lng=+document.getElementById('modal').dataset.lng;var r=document.getElementById('mRegion').value,im=document.getElementById('mImage').value.trim();var nt=document.getElementById('mNotes').value.trim(),tg=document.getElementById('mTags').value.trim();if(editId){var s=spots.find(function(x){return x.id===editId});if(s){s.name=n;s.region=r;s.image=im;s.notes=nt;s.tags=tg}}else{spots.push({id:gid(),name:n,lat:lat,lng:lng,region:r,image:im,notes:nt,tags:tg,createdAt:Date.now()})}closeModal();render();sv()}
+function deleteSpot(id){var t=id||editId;if(!t)return;var s=spots.find(function(x){return x.id===t});if(!s||!confirm('删除「'+s.name+'」？'))return;spots=spots.filter(function(x){return x.id!==t});if(editId===t)closeModal();render();sv()}
+function clearAll(){if(!spots.length){alert('没有景点');return}if(!confirm('删除全部 '+spots.length+' 个景点？'))return;Object.values(markers).forEach(function(m){map.removeLayer(m)});markers={};spots=[];closeModal();render();sv()}
+function gss(lat,lng){if(lat>37.45&&lat<37.70&&lng>126.80&&lng<127.10)return'首尔';if(lat>35.05&&lat<35.30&&lng>129.00&&lng<129.20)return'釜山';if(lat>33.15&&lat<33.55&&lng>126.15&&lng<126.95)return'济州';if(lat>35.73&&lat<35.88&&lng>129.18&&lng<129.42)return'庆州';if(lat>37.38&&lat<37.52&&lng>126.55&&lng<126.72)return'仁川';if(lat>37.72&&lat<37.90&&lng>127.38&&lng<127.65)return'春川/江原道';if(lat>35.75&&lat<35.95&&lng>128.50&&lng<128.70)return'大邱';if(lat>35.08&&lat<35.25&&lng>126.80&&lng<126.95)return'光州';if(lat>36.28&&lat<36.42&&lng>127.35&&lng<127.45)return'大田';if(lat>37.24&&lat<37.32&&lng>126.95&&lng<127.05)return'水原';if(lat>35.78&&lat<35.88&&lng>127.05&&lng<127.18)return'全州';if(lat>38.17&&lat<38.24&&lng>128.55&&lng<128.62)return'束草';return'其他'}
+function handleImg(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){document.getElementById('mImage').value=ev.target.result;document.getElementById('mPreview').src=ev.target.result;document.getElementById('mPreview').style.display='block'};r.readAsDataURL(f)}
+
+var SM=[{id:'s1',name:'景福宫',lat:37.5796,lng:126.9770,region:'首尔',image:'',notes:'韩国代表性宫殿，1395年建。10:00-17:00周二休。门票3000韩元，穿韩服免费。早9点换岗仪式。',tags:'历史文化,必去,宫殿',createdAt:1},{id:'s2',name:'N首尔塔',lat:37.5512,lng:126.9882,region:'首尔',image:'',notes:'首尔地标，南山山顶。缆车或步行上山。观景台16000韩元。傍晚最佳。',tags:'地标,夜景,浪漫',createdAt:2},{id:'s3',name:'明洞',lat:37.5609,lng:126.9860,region:'首尔',image:'',notes:'最繁华购物区。化妆品、服饰、小吃。地铁4号线明洞站6号口。',tags:'购物,美食',createdAt:3},{id:'s4',name:'弘大',lat:37.5563,lng:126.9236,region:'首尔',image:'',notes:'弘益大学周边。街头表演、咖啡馆、潮流店。周末自由市场。',tags:'艺术,夜生活',createdAt:4},{id:'s5',name:'北村韩屋村',lat:37.5826,lng:126.9848,region:'首尔',image:'',notes:'传统韩屋村落，适合拍照。免费参观。',tags:'传统文化,拍照,免费',createdAt:5},{id:'s6',name:'海云台',lat:35.1587,lng:129.1604,region:'釜山',image:'',notes:'釜山最著名海滩。冬柏岛、The Bay 101、水族馆。',tags:'海滩,夏日',createdAt:6},{id:'s7',name:'甘川文化村',lat:35.0976,lng:129.0104,region:'釜山',image:'',notes:'彩色房子层层叠叠。拍照圣地。坡多穿舒适的鞋。',tags:'拍照,网红',createdAt:7},{id:'s8',name:'城山日出峰',lat:33.4581,lng:126.9425,region:'济州',image:'',notes:'UNESCO自然遗产。日出壮观。门票2000韩元。有海女表演。',tags:'自然,日出,UNESCO',createdAt:8},{id:'s9',name:'龙头岩',lat:33.5120,lng:126.5121,region:'济州',image:'',notes:'海岸岩石形似龙头。免费。附近有海鲜餐厅。',tags:'海岸,自然',createdAt:9},{id:'s10',name:'佛国寺',lat:35.7900,lng:129.3320,region:'庆州',image:'',notes:'新罗时期寺庙，世界文化遗产。秋叶极美。门票5000韩元。',tags:'寺庙,UNESCO',createdAt:10},{id:'s11',name:'仁川唐人街',lat:37.4754,lng:126.6183,region:'仁川',image:'',notes:'韩国最大唐人街。炸酱面。附近松月洞童话村。',tags:'美食,拍照',createdAt:11},{id:'s12',name:'南怡岛',lat:37.7914,lng:127.5256,region:'春川/江原道',image:'',notes:'因《冬季恋歌》出名。春秋最美。需乘船。门票13000韩元。',tags:'自然,骑行',createdAt:12}];
+var KX='kspots_v13';
+function sv(){localStorage.setItem(KX,JSON.stringify(spots))}
+function ld(){try{var d=localStorage.getItem(KX);spots=d?JSON.parse(d):JSON.parse(JSON.stringify(SM));if(!d)sv()}catch(e){spots=JSON.parse(JSON.stringify(SM))}}
+function exportData(){var b=new Blob([JSON.stringify({version:13,exportedAt:new Date().toISOString(),spots:spots},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='韩国旅游景点_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function importData(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(!d.spots||!Array.isArray(d.spots))throw Error('格式错误');if(confirm('发现 '+d.spots.length+' 个景点。\n确定=合并 | 取消=覆盖')){var ids=new Set(spots.map(function(s){return s.id}));var ad=d.spots.filter(function(s){return!ids.has(s.id)});spots=spots.concat(ad);alert('新增 '+ad.length+' 个，共 '+spots.length+' 个')}else{spots=d.spots;alert('共 '+spots.length+' 个')}render();sv()}catch(err){alert('导入失败：'+err.message)}};r.readAsText(f);e.target.value=''}
+function gid(){return'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+function x(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// 快捷键 & 手势
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeModal();toggleAdd(false);closeSide()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='b'){e.preventDefault();window.innerWidth<=768?openSide():document.getElementById('side').classList.toggle('hidden');map.invalidateSize()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){if(document.getElementById('modal').style.display==='flex'){e.preventDefault();saveSpot()}}
+});
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+document.getElementById('mImage').addEventListener('input',function(){var p=document.getElementById('mPreview');if(this.value.trim()){p.src=this.value.trim();p.style.display='block'}else{p.style.display='none'}});
+document.getElementById('map-wrap').addEventListener('dblclick',function(e){if(e.target===this&&window.innerWidth>768){document.getElementById('side').classList.toggle('hidden');map.invalidateSize()}});
+var _sx=0;document.addEventListener('touchstart',function(e){_sx=e.touches[0].clientX},{passive:true});document.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-_sx;if(Math.abs(dx)>60&&window.innerWidth<=768){if(dx>0)openSide();else closeSide()}});
+</script>
+</body>
+</html>

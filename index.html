@@ -89,6 +89,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <button onclick="toggleAdd()" id="btnAdd">＋ 添加</button>
 <button onclick="document.getElementById('f1').click()">⬆ 导入</button>
 <button onclick="exportData()">⬇ 导出</button>
+<button onclick="exportOffline()">📱 离线版</button>
 <button onclick="clearAll()" style="color:var(--r)">✕ 清空</button>
 </div>
 <input type="file" id="f1" accept=".json" hidden onchange="importData(event)">
@@ -193,6 +194,22 @@ var KX='kspots_v13';
 function sv(){localStorage.setItem(KX,JSON.stringify(spots))}
 function ld(){try{var d=localStorage.getItem(KX);spots=d?JSON.parse(d):JSON.parse(JSON.stringify(SM));if(!d)sv()}catch(e){spots=JSON.parse(JSON.stringify(SM))}}
 function exportData(){var b=new Blob([JSON.stringify({version:13,exportedAt:new Date().toISOString(),spots:spots},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='韩国旅游景点_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function exportOffline(){
+var grp={};spots.forEach(function(s){var r=s.region||'其他';if(!grp[r])grp[r]=[];grp[r].push(s)});
+var keys=Object.keys(grp).sort(function(a,b){return a.localeCompare(b,'zh-CN')});
+var cards='';
+keys.forEach(function(r){
+cards+='<h2 style="color:#1a3a5c;border-bottom:2px solid #3b7dd8;padding:4px 0;margin:16px 8px 8px">'+x(r)+'</h2>';
+grp[r].forEach(function(s){
+var im=s.image?'<img src="'+x(s.image)+'" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin:4px 0" onerror="this.style.display=\'none\'">':'';
+var tg=s.tags?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0">'+s.tags.split(',').map(function(t){return'<span style="font-size:11px;padding:2px 8px;background:#e7f0fd;color:#3b7dd8;border-radius:10px">'+x(t.trim())+'</span>'}).join('')+'</div>':'';
+cards+='<div style="background:#fff;border-radius:10px;padding:12px;margin:6px 0;box-shadow:0 1px 4px rgba(0,0,0,0.06)"><h3 style="margin:0 0 4px">'+x(s.name)+'</h3>'+im+'<p style="font-size:13px;color:#555;margin:6px 0;line-height:1.5">'+x(s.notes||'')+'</p>'+tg+'<div style="font-size:11px;color:#999;margin-top:6px">📍 '+s.lat.toFixed(4)+', '+s.lng.toFixed(4)+'</div></div>';
+});
+});
+var h='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>韩国旅游景点</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;padding:12px;max-width:600px;margin:0 auto}h1{font-size:22px;color:#1a3a5c;text-align:center;padding:12px 0;border-bottom:3px solid #3b7dd8;margin-bottom:8px}.date{text-align:center;font-size:12px;color:#999;margin-bottom:12px}</style></head><body><h1>🇰🇷 韩国旅游景点</h1><div class="date">'+new Date().toLocaleDateString('zh-CN')+' · '+spots.length+'个景点</div>'+cards+'</body></html>';
+var b=new Blob([h],{type:'text/html;charset=UTF-8'});
+var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='韩国旅游景点_离线版.html';a.click();
+}
 function importData(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(!d.spots||!Array.isArray(d.spots))throw Error('格式错误');if(confirm('发现 '+d.spots.length+' 个景点。\n确定=合并 | 取消=覆盖')){var ids=new Set(spots.map(function(s){return s.id}));var ad=d.spots.filter(function(s){return!ids.has(s.id)});spots=spots.concat(ad);alert('新增 '+ad.length+' 个，共 '+spots.length+' 个')}else{spots=d.spots;alert('共 '+spots.length+' 个')}render();sv()}catch(err){alert('导入失败：'+err.message)}};r.readAsText(f);e.target.value=''}
 function gid(){return'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
 function x(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}

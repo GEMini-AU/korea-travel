@@ -96,7 +96,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <div class="regions" id="regions"><span class="tag on" data-r="all" onclick="setReg('all',this)">全部</span></div>
 <div class="search"><span>🔍</span><input type="text" id="search" placeholder="搜索景点..." oninput="render()"></div>
 <div class="lst-hd"><h3>景点列表</h3><span class="badge" id="count">0</span></div>
-<div class="spot-list" id="list"><div class="none" id="empty"><i>📍</i><p>长按/右键地图添加景点</p></div></div>
+<div class="spot-list" id="list"></div>
+<div class="none" id="empty" style="display:none"><i>📍</i><p>长按/右键地图添加景点</p></div>
 </div>
 <div id="map-wrap">
 <div id="map"></div>
@@ -173,7 +174,7 @@ function render(){
   var h='<span class="tag on" data-r="all" onclick="setReg(\'all\',this)">全部</span>';
   rs.forEach(function(r){h+='<span class="tag'+(curR===r?' on':'')+'" data-r="'+x(r)+'" onclick="setReg(\''+x(r)+'\',this)">'+x(r)+'</span>'});
   document.getElementById('regions').innerHTML=h;
-  if(list.length===0){c.innerHTML='';c.appendChild(e);e.style.display='block'}else{e.style.display='none';
+  e.style.display=list.length===0?'block':'none';if(list.length===0){c.innerHTML=''}else{
   c.innerHTML=list.map(function(s){var im=s.image?'<span style="font-size:10px;color:#3b7dd8">🖼️ 有图片</span>':'';var nt=s.notes?'<div class="note">'+x(s.notes)+'</div>':'';var tg=s.tags?'<div class="tags">'+s.tags.split(',').map(function(t){return'<span>'+x(t.trim())+'</span>'}).join('')+'</div>':'';return'<div class="card" id="card-'+s.id+'" onclick="clickCard(\''+s.id+'\')"><div class="ch"><span class="nm">'+x(s.name)+'</span><span class="rg">'+x(s.region||'其他')+'</span></div><div class="coord">'+s.lat.toFixed(4)+', '+s.lng.toFixed(4)+'</div>'+im+nt+tg+'<div class="acts"><button class="a-goto" onclick="event.stopPropagation();clickCard(\''+s.id+'\')">📍</button><button class="a-edit" onclick="event.stopPropagation();editSpot(\''+s.id+'\')">✏️</button><button class="a-del" onclick="event.stopPropagation();deleteSpot(\''+s.id+'\')">🗑</button></div></div>'}).join('')}
   refresh();
 }

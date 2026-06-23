@@ -154,10 +154,10 @@ function toggleAdd(f){addMode=f!==undefined?f:!addMode;document.querySelectorAll
 
 function mk(s,i){
   var hasImg=!!s.image;
-  var pic=hasImg?'<img src="'+x(s.image)+'" style="width:72px;height:50px;object-fit:cover;border-radius:5px;display:block">':'';
+  var pic=hasImg?'<img src="'+xs(s.image)+'" style="width:72px;height:50px;object-fit:cover;border-radius:5px;display:block">':'';
   var htm=hasImg?('<div style="position:relative;background:#fff;border-radius:7px;box-shadow:0 2px 12px rgba(0,0,0,0.3);cursor:pointer;padding:3px 3px 4px"><span style="position:absolute;top:-6px;left:-6px;width:18px;height:18px;background:#e74c3c;color:#fff;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2">'+(i+1)+'</span>'+pic+'<div style="font-size:11px;font-weight:700;color:#2c3e50;text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">'+x(s.name)+'</div></div>'):('<div style="position:relative;background:#3b7dd8;color:#fff;padding:5px 10px;border-radius:14px;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer;white-space:nowrap"><span style="position:absolute;top:-6px;left:-6px;width:18px;height:18px;background:#e74c3c;color:#fff;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">'+(i+1)+'</span>'+x(s.name)+'</div>');
   var icon=L.divIcon({className:'',html:htm,iconSize:hasImg?[80,82]:[100,32],iconAnchor:hasImg?[40,78]:[50,16],popupAnchor:hasImg?[0,-38]:[0,-8]});
-  var pim=s.image?'<img src="'+x(s.image)+'" style="width:100%;max-height:100px;object-fit:cover;border-radius:4px;margin:4px 0">':'';
+  var pim=s.image?'<img src="'+xs(s.image)+'" style="width:100%;max-height:100px;object-fit:cover;border-radius:4px;margin:4px 0">':'';
   var pnt=s.notes?'<div style="font-size:10px;color:#555;margin:3px 0;line-height:1.3">'+x(s.notes).substring(0,80)+(s.notes.length>80?'...':'')+'</div>':'';
   var m=L.marker([s.lat,s.lng],{icon:icon,zIndexOffset:200}).addTo(map).bindPopup('<div style="font-family:inherit;min-width:180px"><h4 style="font-size:14px;margin-bottom:2px">'+x(s.name)+'</h4><div style="font-size:10px;color:#3b7dd8">📍 '+x(s.region||'其他')+'</div>'+pim+pnt+'<div style="display:flex;gap:3px;margin-top:5px"><button onclick="editSpot(\''+s.id+'\')" style="flex:1;padding:3px 6px;background:#3b7dd8;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:10px">✏️ 编辑</button><button onclick="deleteSpot(\''+s.id+'\')" style="flex:1;padding:3px 6px;background:#e74c3c;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:10px">🗑 删除</button></div></div>',{maxWidth:260});
   m.on('click',function(){hi(s.id)});markers[s.id]=m;
@@ -174,7 +174,7 @@ function render(){
   rs.forEach(function(r){h+='<span class="tag'+(curR===r?' on':'')+'" data-r="'+x(r)+'" onclick="setReg(\''+x(r)+'\',this)">'+x(r)+'</span>'});
   document.getElementById('regions').innerHTML=h;
   if(list.length===0){c.innerHTML='';c.appendChild(e);e.style.display='block'}else{e.style.display='none';
-  c.innerHTML=list.map(function(s){var im=s.image?'<img src="'+x(s.image)+'" onerror="this.style.display=\'none\'" loading="lazy">':'';var nt=s.notes?'<div class="note">'+x(s.notes)+'</div>':'';var tg=s.tags?'<div class="tags">'+s.tags.split(',').map(function(t){return'<span>'+x(t.trim())+'</span>'}).join('')+'</div>':'';return'<div class="card" id="card-'+s.id+'" onclick="clickCard(\''+s.id+'\')"><div class="ch"><span class="nm">'+x(s.name)+'</span><span class="rg">'+x(s.region||'其他')+'</span></div><div class="coord">'+s.lat.toFixed(4)+', '+s.lng.toFixed(4)+'</div>'+im+nt+tg+'<div class="acts"><button class="a-goto" onclick="event.stopPropagation();clickCard(\''+s.id+'\')">📍</button><button class="a-edit" onclick="event.stopPropagation();editSpot(\''+s.id+'\')">✏️</button><button class="a-del" onclick="event.stopPropagation();deleteSpot(\''+s.id+'\')">🗑</button></div></div>'}).join('')}
+  c.innerHTML=list.map(function(s){var im=s.image?'<img src="'+xs(s.image)+'" onerror="this.style.display=\'none\'" loading="lazy">':'';var nt=s.notes?'<div class="note">'+x(s.notes)+'</div>':'';var tg=s.tags?'<div class="tags">'+s.tags.split(',').map(function(t){return'<span>'+x(t.trim())+'</span>'}).join('')+'</div>':'';return'<div class="card" id="card-'+s.id+'" onclick="clickCard(\''+s.id+'\')"><div class="ch"><span class="nm">'+x(s.name)+'</span><span class="rg">'+x(s.region||'其他')+'</span></div><div class="coord">'+s.lat.toFixed(4)+', '+s.lng.toFixed(4)+'</div>'+im+nt+tg+'<div class="acts"><button class="a-goto" onclick="event.stopPropagation();clickCard(\''+s.id+'\')">📍</button><button class="a-edit" onclick="event.stopPropagation();editSpot(\''+s.id+'\')">✏️</button><button class="a-del" onclick="event.stopPropagation();deleteSpot(\''+s.id+'\')">🗑</button></div></div>'}).join('')}
   refresh();
 }
 
@@ -205,7 +205,7 @@ var cards='';
 keys.forEach(function(r){
 cards+='<h2 style="color:#1a3a5c;border-bottom:2px solid #3b7dd8;padding:4px 0;margin:16px 8px 8px">'+x(r)+'</h2>';
 grp[r].forEach(function(s){
-var im=s.image?'<img src="'+x(s.image)+'" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin:4px 0" onerror="this.style.display=\'none\'">':'';
+var im=s.image?'<img src="'+xs(s.image)+'" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin:4px 0" onerror="this.style.display=\'none\'">':'';
 var tg=s.tags?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0">'+s.tags.split(',').map(function(t){return'<span style="font-size:11px;padding:2px 8px;background:#e7f0fd;color:#3b7dd8;border-radius:10px">'+x(t.trim())+'</span>'}).join('')+'</div>':'';
 cards+='<div style="background:#fff;border-radius:10px;padding:12px;margin:6px 0;box-shadow:0 1px 4px rgba(0,0,0,0.06)"><h3 style="margin:0 0 4px">'+x(s.name)+'</h3>'+im+'<p style="font-size:13px;color:#555;margin:6px 0;line-height:1.5">'+x(s.notes||'')+'</p>'+tg+'<div style="font-size:11px;color:#999;margin-top:6px">📍 '+s.lat.toFixed(4)+', '+s.lng.toFixed(4)+'</div></div>';
 });
@@ -217,6 +217,7 @@ var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='韩�
 function importData(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(!d.spots||!Array.isArray(d.spots))throw Error('格式错误');if(confirm('发现 '+d.spots.length+' 个景点。\n确定=合并 | 取消=覆盖')){var ids=new Set(spots.map(function(s){return s.id}));var ad=d.spots.filter(function(s){return!ids.has(s.id)});spots=spots.concat(ad);alert('新增 '+ad.length+' 个，共 '+spots.length+' 个')}else{spots=d.spots;alert('共 '+spots.length+' 个')}render();sv()}catch(err){alert('导入失败：'+err.message)}};r.readAsText(f);e.target.value=''}
 function gid(){return'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
 function x(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function xs(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
 // 快捷键 & 手势
 document.addEventListener('keydown',function(e){
